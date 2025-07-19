@@ -11,6 +11,7 @@ import {
   Loader
 } from 'lucide-react'
 import { supabase } from '../utils/supabase'
+import MevzuatAPI from '../utils/api'
 import toast from 'react-hot-toast'
 
 const SearchPage = ({ profile }) => {
@@ -30,36 +31,7 @@ const SearchPage = ({ profile }) => {
     { value: 'GENELGE', label: 'Genelgeler', count: 3218 }
   ]
 
-  // Mock data - gerçek uygulamada API'den gelecek
-  const mockResults = [
-    {
-      id: '1',
-      adi: 'İŞ KANUNU',
-      sayi: '4857',
-      tarih: '10.06.2003',
-      tip: 'KANUN',
-      ozet: 'İş ilişkilerinde işçi ve işverenin hak ve yükümlülüklerini düzenleyen temel kanun',
-      madde_sayisi: 103
-    },
-    {
-      id: '2',
-      adi: 'TÜRK CEZA KANUNU',
-      sayi: '5237',
-      tarih: '26.09.2004',
-      tip: 'KANUN',
-      ozet: 'Türkiye\'de suç ve cezaları düzenleyen temel hukuki metin',
-      madde_sayisi: 345
-    },
-    {
-      id: '3',
-      adi: 'TÜRK MEDENİ KANUNU',
-      sayi: '4721',
-      tarih: '22.11.2001',
-      tip: 'KANUN',
-      ozet: 'Kişilik hakları, aile hukuku, miras hukuku ve eşya hukukunu düzenler',
-      madde_sayisi: 1030
-    }
-  ]
+  // MCP API entegrasyonu ile gerçek veri kullanılıyor
 
   useEffect(() => {
     const queryParam = searchParams.get('q')
@@ -84,26 +56,49 @@ const SearchPage = ({ profile }) => {
     setLoading(true)
 
     try {
-      // Simulated API call - replace with real API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Call real MCP API
+      const apiResponse = await MevzuatAPI.searchMevzuat(searchQuery, selectedTypes)
       
-      const filteredResults = mockResults.filter(item => 
-        selectedTypes.includes(item.tip) &&
-        (item.adi.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         item.sayi.includes(searchQuery))
-      )
+      let searchResults = []
+      
+      if (apiResponse.success && apiResponse.data) {
+        // Process API response
+        searchResults = apiResponse.data.map(item => ({
+          id: item.id || item.sayi || Math.random().toString(36),
+          adi: item.adi || item.name || item.title,
+          sayi: item.sayi || item.number,
+          tarih: item.tarih || item.date,
+          tip: item.tip || item.type || 'KANUN',
+          ozet: item.ozet || item.summary || item.description || 'Açıklama bulunamadı',
+          madde_sayisi: item.madde_sayisi || item.article_count || 0
+        }))
+        
+        toast.success(`${searchResults.length} sonuç bulundu`)
+      } else {
+        // Fallback to mock data if API fails
+        console.warn('API failed, using mock data:', apiResponse.error)
+        searchResults = MevzuatAPI.getMockResults(searchQuery).filter(item => 
+          selectedTypes.includes(item.tip)
+        )
+        
+        if (searchResults.length > 0) {
+          toast.info(`${searchResults.length} demo sonuç gösteriliyor (API bağlantısı kurulamadı)`)
+        } else {
+          toast.warning('Sonuç bulunamadı')
+        }
+      }
 
-      setResults(filteredResults)
+      setResults(searchResults)
 
       // Save to search history
-      await supabase.from('search_history').insert({
-        user_id: profile?.id,
-        query: searchQuery,
-        mevzuat_types: selectedTypes
-      })
+      if (profile?.id) {
+        await supabase.from('search_history').insert({
+          user_id: profile.id,
+          query: searchQuery,
+          mevzuat_types: selectedTypes
+        })
 
-      // Update search count (this would be done via a stored procedure in real app)
-      if (profile) {
+        // Update search count
         await supabase
           .from('profiles')
           .update({ 
@@ -118,6 +113,16 @@ const SearchPage = ({ profile }) => {
     } catch (error) {
       console.error('Search error:', error)
       toast.error('Arama sırasında bir hata oluştu')
+      
+      // Show mock results as fallback
+      const mockResults = MevzuatAPI.getMockResults(searchQuery).filter(item => 
+        selectedTypes.includes(item.tip)
+      )
+      setResults(mockResults)
+      
+      if (mockResults.length > 0) {
+        toast.info('Demo veriler gösteriliyor')
+      }
     } finally {
       setLoading(false)
     }
