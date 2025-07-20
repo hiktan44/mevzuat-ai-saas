@@ -24,8 +24,8 @@ class MevzuatMCPAPI {
           mevzuat_turleri: types,
           page_size: 20,
           page_number: 1,
-          sort_field: 'RELEVANCE',
-          sort_direction: 'DESC'
+          sort_field: 'RESMI_GAZETE_TARIHI',
+          sort_direction: 'desc'
         }),
         signal: AbortSignal.timeout(this.timeout)
       })

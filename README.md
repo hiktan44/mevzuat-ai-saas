@@ -14,10 +14,12 @@ Türkiye mevzuatını daha anlaşılır hale getiren AI destekli SaaS platformu.
 
 - **Frontend**: React 18, Tailwind CSS
 - **Backend**: Supabase (Auth + Database)
-- **AI**: Gemini API
+- **Data Source**: MCP (Model Context Protocol) Server
+- **AI**: Gemini API (Claude entegrasyonu hazırlanıyor)
 - **Icons**: Lucide React
 - **Notifications**: React Hot Toast
 - **Router**: React Router v6
+- **Data Integration**: [mevzuat-mcp](https://github.com/saidsurucu/mevzuat-mcp) Server
 
 ## 📋 Kurulum
 
@@ -28,7 +30,7 @@ Türkiye mevzuatını daha anlaşılır hale getiren AI destekli SaaS platformu.
 - Supabase hesabı
 - Gemini API anahtarı
 
-### 2. Proje Kurulumu
+### 2. Frontend Kurulumu
 
 ```bash
 # Bağımlılıkları yükle
@@ -38,7 +40,29 @@ npm install
 cp .env.example .env
 ```
 
-### 3. Çevresel Değişkenler
+### 3. MCP Server Kurulumu (İsteğe Bağlı)
+
+```bash
+# Scripts klasörüne git
+cd scripts
+
+# Python virtual environment oluştur
+python3 -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate     # Windows
+
+# Gereksinimleri yükle
+pip install -r requirements.txt
+
+# MCP server'ı kur
+pip install git+https://github.com/saidsurucu/mevzuat-mcp.git
+
+# Environment variables ayarla
+echo "SUPABASE_URL=your_supabase_url" > .env
+echo "SUPABASE_ANON_KEY=your_supabase_key" >> .env
+```
+
+### 4. Çevresel Değişkenler
 
 `.env` dosyasını düzenleyin:
 
@@ -48,7 +72,7 @@ REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
 REACT_APP_GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### 4. Supabase Veritabanı Kurulumu
+### 5. Supabase Veritabanı Kurulumu
 
 Supabase SQL Editor'de aşağıdaki SQL kodunu çalıştırın:
 
@@ -126,7 +150,7 @@ CREATE POLICY "Users can view own favorites" ON favorites
   FOR ALL USING (auth.uid() = user_id);
 ```
 
-### 5. Uygulamayı Başlatma
+### 6. Uygulamayı Başlatma
 
 ```bash
 npm start
@@ -151,22 +175,44 @@ Uygulama `http://localhost:3000` adresinde çalışacaktır.
 2. Mevzuat hakkında sorular sorun
 3. Sohbet geçmişinizi görüntüleyin
 
+### MCP Veri Güncelleme
+```bash
+# Scripts klasöründe
+cd scripts
+source venv/bin/activate
+
+# Mevzuat verilerini güncelle
+python3 mevzuat-mcp-updater.py
+
+# Otomatik güncelleme (crontab)
+0 6 * * * cd /path/to/scripts && python3 mevzuat-mcp-updater.py
+```
+
 ## 🏗 Proje Yapısı
 
 ```
-src/
-├── components/          # React bileşenleri
-│   ├── Sidebar.js      # Sol menü
-│   ├── SearchPage.js   # Arama sayfası
-│   ├── ChatsPage.js    # AI sohbetler
-│   └── ...
-├── pages/              # Ana sayfalar
-│   ├── LandingPage.js  # Giriş sayfası
-│   ├── LoginPage.js    # Giriş formu
-│   └── Dashboard.js    # Kullanıcı paneli
-├── utils/              # Yardımcı fonksiyonlar
-│   └── supabase.js     # Supabase yapılandırması
-└── hooks/              # Custom hook'lar
+mevzuat/
+├── src/
+│   ├── components/          # React bileşenleri
+│   │   ├── Sidebar.js      # Sol menü
+│   │   ├── SearchPage.js   # Arama sayfası
+│   │   ├── ChatsPage.js    # AI sohbetler
+│   │   └── ...
+│   ├── pages/              # Ana sayfalar
+│   │   ├── LandingPage.js  # Giriş sayfası
+│   │   ├── LoginPage.js    # Giriş formu
+│   │   └── Dashboard.js    # Kullanıcı paneli
+│   ├── utils/              # Yardımcı fonksiyonlar
+│   │   ├── supabase.js     # Supabase yapılandırması
+│   │   └── api.js          # MCP API entegrasyonu
+│   └── hooks/              # Custom hook'lar
+├── scripts/               # Python scripts
+│   ├── mevzuat-mcp-updater.py  # MCP ile veri güncelleme
+│   ├── requirements.txt        # Python bağımlılıkları
+│   └── README.md              # Script dokümantasyonu
+├── supabase-mevzuat-schema.sql # Veritabanı şeması
+├── supabase-sample-data.sql    # Örnek veriler
+└── public/                    # Static dosyalar
 ```
 
 ## 🎨 Tasarım Sistemi

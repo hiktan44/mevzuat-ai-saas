@@ -17,14 +17,7 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔍 Initial session:', session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
+    // Production: Normal auth flow
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -36,6 +29,8 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  console.log('🔍 App render - user:', user, 'loading:', loading)
+
   if (loading) {
     return <LoadingScreen />
   }
@@ -44,22 +39,11 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route 
-            path="/" 
-            element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
-          />
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-          />
-          <Route 
-            path="/register" 
-            element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
-          />
-          <Route 
-            path="/dashboard/*" 
-            element={user ? <Dashboard /> : <Navigate to="/login" replace />} 
-          />
+          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+          <Route path="/dashboard/*" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         
         <Toaster

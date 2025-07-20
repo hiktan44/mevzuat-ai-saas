@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
 
-// Mock mode for development (currently disabled - using real Supabase)
+// Mock mode for development (Supabase working - using real data)
 const isMockMode = false
 
 let supabase = null
@@ -123,12 +123,12 @@ export const signIn = async (email, password) => {
 export const signInWithGoogle = async () => {
   if (isMockMode) {
     alert('Mock mode: Google OAuth simüle edildi')
-    return { data: { url: 'http://localhost:3000' }, error: null }
+    return { data: { url: window.location.origin }, error: null }
   }
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin
+      redirectTo: `${window.location.origin}/dashboard`
     }
   })
   return { data, error }

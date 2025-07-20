@@ -82,13 +82,13 @@ async def search_mevzuat(request: SearchRequest):
             sort_direction=request.sort_direction  # Literal'lar direkt kullanılır
         )
         
-        result = await mevzuat_client.search_mevzuat(search_request)
+        result = await mevzuat_client.search_documents(search_request)
         
-        logger.info(f"Arama tamamlandı: {len(result.mevzuat_listesi) if result.mevzuat_listesi else 0} sonuç")
+        logger.info(f"Arama tamamlandı: {len(result.documents) if result.documents else 0} sonuç")
         
         return {
             "success": True,
-            "data": result.dict()
+            "data": result.model_dump()
         }
         
     except Exception as e:
@@ -129,7 +129,7 @@ async def get_article_content(request: ArticleContentRequest):
         
         return {
             "success": True,
-            "data": result.dict()
+            "data": result.model_dump()
         }
         
     except Exception as e:

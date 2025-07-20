@@ -10,6 +10,23 @@ const ChatsPage = ({ profile }) => {
 
   useEffect(() => {
     fetchConversations()
+    
+    // SearchPage'den gelen mevzuat için otomatik sohbet başlat
+    const savedMevzuat = localStorage.getItem('selectedMevzuatForChat')
+    if (savedMevzuat) {
+      try {
+        const mevzuatData = JSON.parse(savedMevzuat)
+        
+        // localStorage'i temizle
+        localStorage.removeItem('selectedMevzuatForChat')
+        
+        // Otomatik sohbet başlat
+        startAutoConversation(mevzuatData)
+      } catch (error) {
+        console.error('Mevzuat verisi okuma hatası:', error)
+        localStorage.removeItem('selectedMevzuatForChat')
+      }
+    }
   }, [profile])
 
   const fetchConversations = async () => {
@@ -32,6 +49,57 @@ const ChatsPage = ({ profile }) => {
       console.error('Error:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const startAutoConversation = async (mevzuatData) => {
+    try {
+      // AI limit kontrolü
+      if (profile?.daily_ai_count >= 20) {
+        toast.error('Günlük AI sorgu limitinize ulaştınız! (20 sorgu/gün)')
+        return
+      }
+
+      // Yeni sohbet oluştur
+      const { data: newConversation, error } = await supabase
+        .from('ai_conversations')
+        .insert([{
+          user_id: profile.id,
+          title: `${mevzuatData.mevzuat_adi} Hakkında Soru`,
+          messages: JSON.stringify([
+            {
+              role: 'system',
+              content: `Bu sohbet ${mevzuatData.mevzuat_adi} (${mevzuatData.mevzuat_turu}, Sayı: ${mevzuatData.mevzuat_no}) hakkında başlatıldı. Mevzuat özeti: ${mevzuatData.ozet || 'Özet bulunmamaktadır'}`
+            },
+            {
+              role: 'assistant',
+              content: `Merhaba! ${mevzuatData.mevzuat_adi} hakkında size nasıl yardımcı olabilirim? Bu ${mevzuatData.mevzuat_turu}'nun detayları, maddeleri, uygulama alanları veya diğer konularda sorularınızı yanıtlayabilirim.`
+            }
+          ])
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      // AI count'u artır
+      await supabase
+        .from('profiles')
+        .update({ 
+          daily_ai_count: (profile?.daily_ai_count || 0) + 1 
+        })
+        .eq('id', profile.id)
+
+      // Sohbet listesini güncelle ve yeni sohbeti seç
+      setConversations(prev => [newConversation, ...prev])
+      setSelectedConversation(newConversation)
+      
+      toast.success(`${mevzuatData.mevzuat_adi} hakkında sohbet başlatıldı!`)
+    } catch (error) {
+      console.error('Auto conversation error:', error)
+      toast.error('Otomatik sohbet başlatılırken hata oluştu')
     }
   }
 

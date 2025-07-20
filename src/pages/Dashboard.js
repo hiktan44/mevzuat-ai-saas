@@ -22,6 +22,21 @@ const Dashboard = () => {
         setUser(user)
 
         if (user) {
+          // Development kullanıcısı için mock profile
+          if (user.id === 'dev-user-id' || user.id === 'auto-test-user-id') {
+            console.log('🔧 Using mock profile for development user')
+            setProfile({
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || 'Development User',
+              daily_search_count: 19,
+              daily_ai_count: 0,
+              created_at: new Date().toISOString()
+            })
+            setLoading(false)
+            return
+          }
+
           const { data: profile, error } = await supabase
             .from('profiles')
             .select('*')
