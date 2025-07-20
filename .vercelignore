@@ -17,7 +17,7 @@ scripts/
 node_modules/
 .next/
 dist/
-build/
+# build/ klasörünü ignore etme - Vercel'e gerekli
 
 # Environment files
 .env*
