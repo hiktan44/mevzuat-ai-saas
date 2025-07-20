@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
 
-// Mock mode for development
-const isMockMode = !supabaseUrl || !supabaseKey || supabaseUrl.includes('xxdpcteamnbothgwbvwr')
+// Mock mode for development  
+const isMockMode = !supabaseUrl || !supabaseKey || supabaseUrl.includes('xxdpcteamnbothgwbvwr') || supabaseUrl.includes('cunlpyblpkvaplfyrkcs')
 
 let supabase = null
 
@@ -82,4 +82,5 @@ export const getCurrentUser = async () => {
   return session?.user || null
 }
 
+export { supabase }
 export default supabase
