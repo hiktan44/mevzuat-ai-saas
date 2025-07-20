@@ -46,7 +46,8 @@ const LoginPage = () => {
         }
       } else {
         toast.success('Başarıyla giriş yapıldı!')
-        navigate('/dashboard')
+        console.log('✅ Login successful, App.js will handle redirect automatically')
+        // App.js will handle the redirect automatically via user state
       }
     } catch (error) {
       console.error('Login error:', error)
