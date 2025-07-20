@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mevzuat-mcp-server
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: cd mevzuat-mcp && pip install -r requirements.txt
+    startCommand: cd mevzuat-mcp && python mcp_server_web.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: PYTHON_VERSION
+        value: 3.13 
