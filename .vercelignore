@@ -1,0 +1,64 @@
+# Vercel Ignore File
+# MCP Server - sadece frontend deploy
+mevzuat-mcp/
+*.py
+__pycache__/
+*.pyc
+
+# Scripts
+scripts/
+
+# Database files  
+*.sql
+*.db
+*.sqlite
+
+# Node modules ve build artifacts
+node_modules/
+.next/
+dist/
+build/
+
+# Environment files
+.env*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+package-lock.json
+yarn.lock
+
+# Temporary files
+tmp/
+temp/
+
+# Large files
+*.zip
+*.tar.gz
+*.rar
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+
+# Git
+.git/
+.gitignore 
